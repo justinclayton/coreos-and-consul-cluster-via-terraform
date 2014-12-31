@@ -1,0 +1,8 @@
+## copy this to terraform.tfvars and edit
+
+stack_name = "coreos-cluster"
+
+# aws creds
+access_key = "YOUR_AWS_ACCESS_KEY"
+secret_key = "YOUR_AWS_SECRET_KEY"
+key_name   = "YOUR_KEY_PAIR_NAME"

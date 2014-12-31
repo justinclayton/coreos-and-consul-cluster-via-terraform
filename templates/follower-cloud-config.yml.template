@@ -1,0 +1,40 @@
+#cloud-config
+  coreos:
+    etcd:
+      discovery: {{ discovery_url }}
+      addr: "$private_ipv4:4001"
+      peer-addr: "$private_ipv4:7001"
+    fleet:
+      metadata: "region=us-west-2,consul_role=follower"
+    units:
+      - name: etcd.service
+        command: start
+      - name: fleet.service
+        command: start
+      - name: consul.service
+        command: start
+        content: |
+          [Unit]
+          Description=Consul Follower Agent
+          After=docker.service
+          After=etcd.service
+          After=fleet.service
+          [Service]
+          Restart=always
+          ExecStartPre=-/usr/bin/docker kill consul
+          ExecStartPre=-/usr/bin/docker rm consul
+          ExecStart=/bin/sh -c "/usr/bin/docker run --name consul -h $HOSTNAME -p $private_ipv4:8300:8300  -p $private_ipv4:8301:8301  -p $private_ipv4:8301:8301/udp  -p $private_ipv4:8302:8302  -p $private_ipv4:8302:8302/udp  -p $private_ipv4:8400:8400  -p $private_ipv4:8500:8500  -p 172.17.42.1:53:53/udp  -e SERVICE_IGNORE=true  progrium/consul  -advertise $private_ipv4 -retry-join $(etcdctl get $(etcdctl ls /consul/bootstrap/machines | tail -1))"
+          ExecStop=/usr/bin/docker stop consul
+      - name: registrator.service
+        command: start
+        content: |
+          [Unit]
+          Description=Registrator
+          BindsTo=consul.service
+          After=consul.service
+          [Service]
+          Restart=always
+          ExecStartPre=-/usr/bin/docker kill registrator
+          ExecStartPre=-/usr/bin/docker rm registrator
+          ExecStart=/bin/sh -c "/usr/bin/docker run --name registrator -h registrator -v /var/run/docker.sock:/tmp/docker.sock  progrium/registrator consul://$private_ipv4:8500"
+          ExecStop=/usr/bin/docker stop registrator

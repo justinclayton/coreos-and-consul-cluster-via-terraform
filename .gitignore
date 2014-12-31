@@ -1,0 +1,6 @@
+discovery_url
+*.yml
+plan
+terraform.tfstate
+terraform.tfvars
+terraform.tfstate.backup

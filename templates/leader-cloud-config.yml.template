@@ -1,0 +1,51 @@
+#cloud-config
+  coreos:
+    etcd:
+      discovery: {{ discovery_url }}
+      addr: "$private_ipv4:4001"
+      peer-addr: "$private_ipv4:7001"
+    fleet:
+      metadata: "region=us-west-2,consul_role=leader"
+    units:
+      - name: etcd.service
+        command: start
+      - name: fleet.service
+        command: start
+      - name: consul.service
+        command: start
+        content: |
+          [Unit]
+          Description=Consul Server Agent
+          After=docker.service
+          After=etcd.service
+          After=fleet.service
+          [Service]
+          Restart=always
+          ExecStartPre=-/usr/bin/docker kill consul
+          ExecStartPre=-/usr/bin/docker rm consul
+          ExecStart=/bin/sh -c "eval $(/usr/bin/docker run --rm progrium/consul cmd:run $private_ipv4 -e SERVICE_IGNORE=true)"
+          ExecStop=/usr/bin/docker stop consul
+      - name: consul-announce.service
+        command: start
+        content: |
+          [Unit]
+          Description=Consul Server Announcer
+          BindsTo=consul.service
+          After=consul.service
+          [Service]
+          Restart=always
+          ExecStart=/bin/sh -c "while true; do etcdctl set /consul/bootstrap/machines/$(cat /etc/machine-id) $private_ipv4 --ttl 60; /usr/bin/docker exec consul consul join $(etcdctl get $(etcdctl ls /consul/bootstrap/machines | tail -1)); sleep 45; done"
+          ExecStop=/bin/sh -c "/usr/bin/etcdctl rm /consul/bootstrap/machines/$(cat /etc/machine-id)"
+      - name: registrator.service
+        command: start
+        content: |
+          [Unit]
+          Description=Registrator
+          BindsTo=consul.service
+          After=consul.service
+          [Service]
+          Restart=always
+          ExecStartPre=-/usr/bin/docker kill registrator
+          ExecStartPre=-/usr/bin/docker rm registrator
+          ExecStart=/bin/sh -c "/usr/bin/docker run --name registrator -h registrator -v /var/run/docker.sock:/tmp/docker.sock  progrium/registrator consul://$private_ipv4:8500"
+          ExecStop=/usr/bin/docker stop registrator
