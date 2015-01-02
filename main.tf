@@ -77,6 +77,13 @@ resource "aws_elb" "coreos_leader_elb" {
   }
 
   listener {
+    lb_port            = 8400
+    instance_port      = 8400
+    lb_protocol        = "tcp"
+    instance_protocol  = "tcp"
+  }
+
+  listener {
     lb_port            = 8500
     instance_port      = 8500
     lb_protocol        = "http"
