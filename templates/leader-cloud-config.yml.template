@@ -23,7 +23,7 @@
           Restart=always
           ExecStartPre=-/usr/bin/docker kill consul
           ExecStartPre=-/usr/bin/docker rm consul
-          ExecStart=/bin/sh -c "eval $(/usr/bin/docker run --rm progrium/consul cmd:run $private_ipv4 -e SERVICE_IGNORE=true)"
+          ExecStart=/bin/sh -c "eval $(/usr/bin/docker run --rm progrium/consul cmd:run $private_ipv4 -e SERVICE_IGNORE=true -v /var/run/docker.sock:/var/run/docker.sock)"
           ExecStop=/usr/bin/docker stop consul
       - name: consul-announce.service
         command: start
