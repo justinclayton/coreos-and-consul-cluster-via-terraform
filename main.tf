@@ -5,7 +5,7 @@ provider "aws" {
 }
 
 resource "aws_autoscaling_group" "coreos_leader_autoscale" {
-  name                 = "leader_autoscale"
+  name                 = "${var.stack_name}_leader_autoscale"
   load_balancers       = ["${aws_elb.coreos_leader_elb.id}"]
   vpc_zone_identifier  = ["${var.subnet}"]
   availability_zones   = ["${var.az}"]
@@ -16,7 +16,7 @@ resource "aws_autoscaling_group" "coreos_leader_autoscale" {
 }
 
 resource "aws_launch_configuration" "coreos_leader_launchconfig" {
-  name            = "leader_config"
+  name            = "${var.stack_name}_leader_config"
   image_id        = "${lookup(var.coreos_amis, var.region)}"
   instance_type   = "m3.medium"
   security_groups = ["${aws_security_group.coreos_securitygroup.id}"]
@@ -27,7 +27,7 @@ resource "aws_launch_configuration" "coreos_leader_launchconfig" {
 resource "aws_autoscaling_group" "coreos_follower_autoscale" {
   vpc_zone_identifier  = ["${var.subnet}"]
   availability_zones   = ["${var.az}"]
-  name                 = "follower_autoscale"
+  name                 = "${var.stack_name}_follower_autoscale"
   min_size             = 1
   max_size             = 95
   desired_capacity     = 7
@@ -35,7 +35,7 @@ resource "aws_autoscaling_group" "coreos_follower_autoscale" {
 }
 
 resource "aws_launch_configuration" "coreos_follower_launchconfig" {
-  name            = "follower_config"
+  name            = "${var.stack_name}_follower_config"
   image_id        = "${lookup(var.coreos_amis, var.region)}"
   instance_type   = "m3.medium"
   security_groups = ["${aws_security_group.coreos_securitygroup.id}"]
@@ -44,7 +44,7 @@ resource "aws_launch_configuration" "coreos_follower_launchconfig" {
 }
 
 resource "aws_security_group" "coreos_securitygroup" {
-  name          = "coreos_securitygroup"
+  name          = "${var.stack_name}_coreos_securitygroup"
   description   = "allow a bunch of stuff"
   vpc_id        = "${var.vpc}"
 
@@ -64,7 +64,7 @@ resource "aws_security_group" "coreos_securitygroup" {
 }
 
 resource "aws_elb" "coreos_leader_elb" {
-  name                 = "coreos-leader-elb"
+  name                 = "${var.stack_name}-coreos-leader-elb"
   security_groups      = ["${aws_security_group.coreos_securitygroup.id}"]
   internal             = true
   subnets              = ["${var.subnet}"]
