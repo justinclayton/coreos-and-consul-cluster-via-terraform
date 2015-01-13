@@ -24,6 +24,7 @@
           RestartSec=240
           ExecStartPre=-/usr/bin/docker kill consul
           ExecStartPre=-/usr/bin/docker rm consul
+          ExecStartPre=/usr/bin/docker pull progrium/consul
           ExecStart=/bin/sh -c "eval $(/usr/bin/docker run --rm progrium/consul cmd:run $private_ipv4 -e SERVICE_IGNORE=true -v /var/run/docker.sock:/var/run/docker.sock)"
           ExecStop=/usr/bin/docker stop consul
       - name: consul-announce.service
@@ -47,5 +48,6 @@
           Restart=on-failure
           ExecStartPre=-/usr/bin/docker kill registrator
           ExecStartPre=-/usr/bin/docker rm registrator
+          ExecStartPre=/usr/bin/docker pull progrium/registrator
           ExecStart=/bin/sh -c "/usr/bin/docker run --name registrator -h registrator -v /var/run/docker.sock:/tmp/docker.sock  progrium/registrator consul://$private_ipv4:8500"
           ExecStop=/usr/bin/docker stop registrator
