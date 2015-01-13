@@ -12,6 +12,18 @@ variable "region" {
 variable "az" {}
 variable "vpc" {}
 variable "subnet" {}
+variable "leader_instance_size" {
+  default = "m3.medium"
+}
+variable "follower_instance_size" {
+  default = "m3.medium"
+}
+variable "num_leaders" {
+  default = 3
+}
+variable "num_followers" {
+  default = 7
+}
 
 # dns stuff
 variable "route53_zone_id" {}

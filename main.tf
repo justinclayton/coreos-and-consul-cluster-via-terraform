@@ -11,14 +11,14 @@ resource "aws_autoscaling_group" "coreos_leader_autoscale" {
   availability_zones   = ["${var.az}"]
   min_size             = 3
   max_size             = 5
-  desired_capacity     = 3
+  desired_capacity     = "${var.num_leaders}"
   launch_configuration = "${aws_launch_configuration.coreos_leader_launchconfig.name}"
 }
 
 resource "aws_launch_configuration" "coreos_leader_launchconfig" {
   name            = "${var.stack_name}_leader_config"
   image_id        = "${lookup(var.coreos_amis, var.region)}"
-  instance_type   = "m3.medium"
+  instance_type   = "${var.leader_instance_size}"
   security_groups = ["${aws_security_group.coreos_securitygroup.id}"]
   key_name        = "${var.key_name}"
   user_data       = "${file("leader-cloud-config.yml")}"
@@ -30,14 +30,14 @@ resource "aws_autoscaling_group" "coreos_follower_autoscale" {
   name                 = "${var.stack_name}_follower_autoscale"
   min_size             = 1
   max_size             = 95
-  desired_capacity     = 7
+  desired_capacity     = "${var.num_followers}"
   launch_configuration = "${aws_launch_configuration.coreos_follower_launchconfig.name}"
 }
 
 resource "aws_launch_configuration" "coreos_follower_launchconfig" {
   name            = "${var.stack_name}_follower_config"
   image_id        = "${lookup(var.coreos_amis, var.region)}"
-  instance_type   = "m3.medium"
+  instance_type   = "${var.follower_instance_size}"
   security_groups = ["${aws_security_group.coreos_securitygroup.id}"]
   key_name        = "${var.key_name}"
   user_data       = "${file("follower-cloud-config.yml")}"
