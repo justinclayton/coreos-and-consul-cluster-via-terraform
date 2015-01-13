@@ -28,7 +28,7 @@ resource "aws_autoscaling_group" "coreos_follower_autoscale" {
   vpc_zone_identifier  = ["${var.subnet}"]
   availability_zones   = ["${var.az}"]
   name                 = "${var.stack_name}_follower_autoscale"
-  min_size             = 1
+  min_size             = 0
   max_size             = 95
   desired_capacity     = "${var.num_followers}"
   launch_configuration = "${aws_launch_configuration.coreos_follower_launchconfig.name}"
