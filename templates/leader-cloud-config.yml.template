@@ -20,7 +20,8 @@
           After=etcd.service
           After=fleet.service
           [Service]
-          Restart=always
+          Restart=on-failure
+          RestartSec=240
           ExecStartPre=-/usr/bin/docker kill consul
           ExecStartPre=-/usr/bin/docker rm consul
           ExecStart=/bin/sh -c "eval $(/usr/bin/docker run --rm progrium/consul cmd:run $private_ipv4 -e SERVICE_IGNORE=true -v /var/run/docker.sock:/var/run/docker.sock)"
@@ -30,10 +31,9 @@
         content: |
           [Unit]
           Description=Consul Server Announcer
-          BindsTo=consul.service
+          PartOf=consul.service
           After=consul.service
           [Service]
-          Restart=always
           ExecStart=/bin/sh -c "while true; do etcdctl set /consul/bootstrap/machines/$(cat /etc/machine-id) $private_ipv4 --ttl 60; /usr/bin/docker exec consul consul join $(etcdctl get $(etcdctl ls /consul/bootstrap/machines | tail -1)); sleep 45; done"
           ExecStop=/bin/sh -c "/usr/bin/etcdctl rm /consul/bootstrap/machines/$(cat /etc/machine-id)"
       - name: registrator.service
@@ -41,10 +41,10 @@
         content: |
           [Unit]
           Description=Registrator
-          BindsTo=consul.service
+          PartOf=consul.service
           After=consul.service
           [Service]
-          Restart=always
+          Restart=on-failure
           ExecStartPre=-/usr/bin/docker kill registrator
           ExecStartPre=-/usr/bin/docker rm registrator
           ExecStart=/bin/sh -c "/usr/bin/docker run --name registrator -h registrator -v /var/run/docker.sock:/tmp/docker.sock  progrium/registrator consul://$private_ipv4:8500"
