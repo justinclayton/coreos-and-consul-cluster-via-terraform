@@ -11,7 +11,8 @@ variable "region" {
 }
 variable "az" {}
 variable "vpc" {}
-variable "subnet" {}
+variable "lb_subnet" {}
+variable "instance_subnet" {}
 variable "leader_instance_size" {
   default = "m3.medium"
 }
@@ -24,10 +25,6 @@ variable "num_leaders" {
 variable "num_followers" {
   default = 7
 }
-
-# dns stuff
-variable "route53_zone_id" {}
-variable "route53_domain" {}
 
 # coreos images
 variable "coreos_amis" {

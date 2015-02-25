@@ -7,7 +7,7 @@ provider "aws" {
 resource "aws_autoscaling_group" "coreos_leader_autoscale" {
   name                 = "${var.stack_name}_leader_autoscale"
   load_balancers       = ["${aws_elb.coreos_leader_elb.id}"]
-  vpc_zone_identifier  = ["${var.subnet}"]
+  vpc_zone_identifier  = ["${var.instance_subnet}"]
   availability_zones   = ["${var.az}"]
   min_size             = 3
   max_size             = 5
@@ -25,7 +25,7 @@ resource "aws_launch_configuration" "coreos_leader_launchconfig" {
 }
 
 resource "aws_autoscaling_group" "coreos_follower_autoscale" {
-  vpc_zone_identifier  = ["${var.subnet}"]
+  vpc_zone_identifier  = ["${var.instance_subnet}"]
   availability_zones   = ["${var.az}"]
   name                 = "${var.stack_name}_follower_autoscale"
   min_size             = 0
@@ -66,8 +66,8 @@ resource "aws_security_group" "coreos_securitygroup" {
 resource "aws_elb" "coreos_leader_elb" {
   name                 = "${var.stack_name}-coreos-leader-elb"
   security_groups      = ["${aws_security_group.coreos_securitygroup.id}"]
-  internal             = true
-  subnets              = ["${var.subnet}"]
+  internal             = false
+  subnets              = ["${var.lb_subnet}"]
 
   listener {
     lb_port            = 4001
@@ -105,12 +105,4 @@ resource "aws_elb" "coreos_leader_elb" {
     interval            = 30
   }
 
-}
-
-resource "aws_route53_record" "elb_dns" {
-  name = "${var.stack_name}.${var.route53_domain}"
-  records = ["${aws_elb.coreos_leader_elb.dns_name}"]
-  zone_id = "${var.route53_zone_id}"
-  type = "CNAME"
-  ttl = 60
 }
